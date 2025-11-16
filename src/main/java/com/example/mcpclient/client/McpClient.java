@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.UUID;
@@ -33,30 +32,81 @@ public class McpClient {
         log.debug("Fetching context from MCP server for prompt: {}", prompt);
         
         try {
-            // Build MCP request to fetch resources or call tools
-            McpRequest request = McpRequest.builder()
+            // Step 1: List available resources
+            McpRequest listRequest = McpRequest.builder()
                     .jsonrpc("2.0")
                     .method("resources/list")
-                    .params(Map.of("prompt", prompt))
+                    .params(Map.of())
                     .id(UUID.randomUUID().toString())
                     .build();
 
-            // Call MCP server
-            McpResponse response = webClient.post()
-                    .bodyValue(request)
+            McpResponse listResponse = webClient.post()
+                    .bodyValue(listRequest)
                     .retrieve()
                     .bodyToMono(McpResponse.class)
                     .block();
 
-            if (response != null && response.getError() == null) {
-                log.debug("Successfully fetched context from MCP server");
-                return response.getResult().toString();
-            } else if (response != null && response.getError() != null) {
-                log.error("MCP server returned error: {}", response.getError().getMessage());
-                return "Error fetching context: " + response.getError().getMessage();
+            if (listResponse == null || listResponse.getError() != null) {
+                String errorMsg = listResponse != null ? listResponse.getError().getMessage() : "No response";
+                log.error("MCP server returned error on resources/list: {}", errorMsg);
+                return "Error fetching resource list: " + errorMsg;
+            }
+
+            log.debug("Resources list response: {}", listResponse.getResult());
+
+            // Step 2: Read the actual content of each resource
+            StringBuilder contextBuilder = new StringBuilder();
+
+            // Extract resources from the response
+            Object result = listResponse.getResult();
+            if (result instanceof Map) {
+                Map<String, Object> resultMap = (Map<String, Object>) result;
+                Object resourcesObj = resultMap.get("resources");
+
+                if (resourcesObj instanceof java.util.List) {
+                    java.util.List<Map<String, Object>> resources = (java.util.List<Map<String, Object>>) resourcesObj;
+
+                    for (Map<String, Object> resource : resources) {
+                        String uri = (String) resource.get("uri");
+                        String name = (String) resource.get("name");
+
+                        log.debug("Reading resource: {} ({})", name, uri);
+
+                        // Call resources/read to get actual content
+                        McpRequest readRequest = McpRequest.builder()
+                                .jsonrpc("2.0")
+                                .method("resources/read")
+                                .params(Map.of("uri", uri))
+                                .id(UUID.randomUUID().toString())
+                                .build();
+
+                        McpResponse readResponse = webClient.post()
+                                .bodyValue(readRequest)
+                                .retrieve()
+                                .bodyToMono(McpResponse.class)
+                                .block();
+
+                        if (readResponse != null && readResponse.getError() == null) {
+                            contextBuilder.append("\n=== ").append(name).append(" ===\n");
+                            contextBuilder.append(readResponse.getResult().toString()).append("\n");
+                            log.debug("Successfully read resource: {}", name);
+                        } else {
+                            log.warn("Failed to read resource {}: {}",
+                                    name,
+                                    readResponse != null ? readResponse.getError().getMessage() : "No response");
+                        }
+                    }
+                }
+            }
+
+            String context = contextBuilder.toString();
+            if (context.isEmpty()) {
+                return "No context available from resources";
             }
             
-            return "No context available";
+            log.debug("Successfully fetched context from MCP server: {} characters", context.length());
+            return context;
+
         } catch (Exception e) {
             log.error("Error calling MCP server", e);
             return "Error fetching context from MCP server: " + e.getMessage();

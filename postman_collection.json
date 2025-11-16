@@ -1,0 +1,365 @@
+{
+  "info": {
+    "name": "Spring MCP Client - SQL Generator",
+    "description": "Collection for testing SQL query generation via MCP server integration",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "SQL Generation",
+      "item": [
+        {
+          "name": "Generate SQL - Simple User Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Get all users who registered in the last 30 days\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/sql/generate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "sql", "generate"]
+            },
+            "description": "Generates SQL query to fetch users who registered in the last 30 days"
+          },
+          "response": [
+            {
+              "name": "Success Response Example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"prompt\": \"Get all users who registered in the last 30 days\"\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:8081/api/sql/generate",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "8081",
+                  "path": ["api", "sql", "generate"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"sqlQuery\": \"SELECT * FROM users WHERE registration_date >= DATE_SUB(NOW(), INTERVAL 30 DAY);\",\n  \"context\": \"\\n=== Database Schema - Users Table ===\\nTable: users\\nColumns:\\n- id (INTEGER, PRIMARY KEY)\\n- username (VARCHAR(255), NOT NULL)\\n- email (VARCHAR(255), UNIQUE, NOT NULL)\\n- registration_date (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)\\n- is_active (BOOLEAN, DEFAULT TRUE)\\n\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Generate SQL - Join Query (Orders with Customer Names)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Show all orders with customer names and total amounts for orders over $1000\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/sql/generate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "sql", "generate"]
+            },
+            "description": "Generates SQL query with JOIN to fetch orders with customer names where amount > $1000"
+          },
+          "response": [
+            {
+              "name": "Success Response Example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"prompt\": \"Show all orders with customer names and total amounts for orders over $1000\"\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:8081/api/sql/generate",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "8081",
+                  "path": ["api", "sql", "generate"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"sqlQuery\": \"SELECT c.name, o.order_id, o.total_amount FROM customers c INNER JOIN orders o ON c.customer_id = o.customer_id WHERE o.total_amount > 1000;\",\n  \"context\": \"\\n=== Database Schema - Customers Table ===\\nTable: customers\\nColumns:\\n- customer_id (INTEGER, PRIMARY KEY)\\n- name (VARCHAR(255), NOT NULL)\\n- email (VARCHAR(255))\\n\\n=== Database Schema - Orders Table ===\\nTable: orders\\nColumns:\\n- order_id (INTEGER, PRIMARY KEY)\\n- customer_id (INTEGER, FOREIGN KEY REFERENCES customers)\\n- total_amount (DECIMAL(10,2))\\n- order_date (DATE)\\n\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Generate SQL - Aggregate Query (Product Count by Category)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Count how many products are in each category\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/sql/generate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "sql", "generate"]
+            },
+            "description": "Generates SQL query with GROUP BY to count products per category"
+          },
+          "response": [
+            {
+              "name": "Success Response Example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"prompt\": \"Count how many products are in each category\"\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:8081/api/sql/generate",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "8081",
+                  "path": ["api", "sql", "generate"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"sqlQuery\": \"SELECT category, COUNT(*) as product_count FROM products GROUP BY category;\",\n  \"context\": \"\\n=== Database Schema - Products Table ===\\nTable: products\\nColumns:\\n- product_id (INTEGER, PRIMARY KEY)\\n- name (VARCHAR(255), NOT NULL)\\n- category (VARCHAR(100))\\n- price (DECIMAL(10,2))\\n- stock_quantity (INTEGER)\\n\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Generate SQL - Complex Filter (Active Users with Recent Orders)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Find all active users who have placed at least 3 orders in the last 6 months\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/sql/generate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "sql", "generate"]
+            },
+            "description": "Generates complex SQL query with JOIN, WHERE, GROUP BY, and HAVING clauses"
+          },
+          "response": [
+            {
+              "name": "Success Response Example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"prompt\": \"Find all active users who have placed at least 3 orders in the last 6 months\"\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:8081/api/sql/generate",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "8081",
+                  "path": ["api", "sql", "generate"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"sqlQuery\": \"SELECT u.user_id, u.username, u.email, COUNT(o.order_id) as order_count FROM users u INNER JOIN orders o ON u.user_id = o.user_id WHERE u.is_active = TRUE AND o.order_date >= DATE_SUB(NOW(), INTERVAL 6 MONTH) GROUP BY u.user_id, u.username, u.email HAVING COUNT(o.order_id) >= 3;\",\n  \"context\": \"\\n=== Database Schema - Users Table ===\\nTable: users\\n...\\n\\n=== Database Schema - Orders Table ===\\nTable: orders\\n...\\n\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Generate SQL - Date Range Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Get all products added between January 1, 2024 and March 31, 2024\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/sql/generate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "sql", "generate"]
+            },
+            "description": "Generates SQL query with date range filtering"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate SQL - Top N Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Show top 10 customers by total order value\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/sql/generate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "sql", "generate"]
+            },
+            "description": "Generates SQL query with ORDER BY and LIMIT"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health & Status",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/sql/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "sql", "health"]
+            },
+            "description": "Check if the MCP Client service is running and healthy"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:8081/api/sql/health",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "8081",
+                  "path": ["api", "sql", "health"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "plain",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "MCP Client is running"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "apiPath",
+      "value": "/api/sql",
+      "type": "string"
+    }
+  ]
+}
+
