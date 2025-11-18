@@ -154,4 +154,41 @@ public class McpClient {
             return "Error calling MCP tool: " + e.getMessage();
         }
     }
+
+    /**
+     * Lists available tools from the MCP server
+     *
+     * @return Tools list response from MCP server
+     */
+    public String listTools() {
+        log.debug("Listing available tools from MCP server");
+
+        try {
+            McpRequest request = McpRequest.builder()
+                    .jsonrpc("2.0")
+                    .method("tools/list")
+                    .params(Map.of())
+                    .id(UUID.randomUUID().toString())
+                    .build();
+
+            McpResponse response = webClient.post()
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(McpResponse.class)
+                    .block();
+
+            if (response != null && response.getError() == null) {
+                log.debug("Successfully listed MCP tools");
+                return response.getResult().toString();
+            } else if (response != null && response.getError() != null) {
+                log.error("MCP tools/list failed: {}", response.getError().getMessage());
+                return "Error listing tools: " + response.getError().getMessage();
+            }
+
+            return "Tools list returned no result";
+        } catch (Exception e) {
+            log.error("Error listing MCP tools", e);
+            return "Error listing MCP tools: " + e.getMessage();
+        }
+    }
 }
